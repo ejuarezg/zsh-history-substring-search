@@ -49,6 +49,7 @@
 : ${HISTORY_SUBSTRING_SEARCH_ENSURE_UNIQUE=''}
 : ${HISTORY_SUBSTRING_SEARCH_FUZZY=''}
 : ${HISTORY_SUBSTRING_SEARCH_PREFIXED=''}
+: ${HISTORY_SUBSTRING_SEARCH_ANCHORED=''}
 
 #-----------------------------------------------------------------------------
 # declare internal global variables
@@ -247,7 +248,13 @@ _history-substring-search-begin() {
     # Escape and join query parts with wildcard character '*' as seperator
     # `(j:CHAR:)` join array to string with CHAR as seperator
     #
-    local search_pattern="${(j:*:)_history_substring_search_query_parts[@]//(#m)[\][()|\\*?#<>~^]/\\$MATCH}*"
+    local search_pattern="${(j:*:)_history_substring_search_query_parts[@]//(#m)[\][()|\\*?#<>~^]/\\$MATCH}"
+
+    if [[ -z $HISTORY_SUBSTRING_SEARCH_ANCHORED ]]; then
+      # First remove trailing whitespace, then remove leading whitespace.
+      search_pattern="${search_pattern%%[[:blank:]]##}*"
+      search_pattern="*${search_pattern##[[:blank:]]##}"
+    fi
 
     #
     # Support anchoring history search to the beginning of the command
